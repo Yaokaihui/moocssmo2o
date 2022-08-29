@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--每60s扫描配置文件看配置文件有没有发生变化，如果发生变化就会重新加载配置，这样就不用每次都重启服务器，会自动感知变化-->
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+
+    <!--1.定义参数常量给下面的logger和appender调用。logback日志的级别：TRACE<DEBUG<INFO<WARN<ERROR (通常用到debug,info,error) -->
+    <!--new一个logger的日志实例对象，logger会依次调用logger.trace("msg"),logger.debug("msg")..-->
+    <property name="log.level" value="debug"></property>
+
+    <!--2.这个文件保留的时间-->
+    <property name="log.maxHistory" value="30"></property>
+
+    <!--3.标识当前logback日志配置文件存储的根路径-->
+    <property name="log.filePath" value="${catalina.base}/logs/webapps"></property><!-- ${catalina.base}里面存储的是tomcat实例的根目录 -->
+
+    <!--4.展现日志的格式-->
+    <property name="log.pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS}[%thread]%-5level%logger{50}-%msg%n"></property><!-- %d:时间格式,{yyyy-MM-dd HH:mm:ss.SSS} [%thead]:标识程序由哪个线程执行的  %-5level:从左往右显示5个字符宽度用来显示level-->
+
+
+    <!--将日志输出在控制台的设置-->
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder><!--作用类似于layout，既将日志信息转换成字符串，又将这些字符串输出到文件中去-->
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <!--DEBUG--><!--文件会随着时间的推移size逐渐增大而滚动出新的日志文件-->
+    <appender name="debugAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--标明文件路径-->
+        <file>${log.filePath}/debug.log</file>
+        <!--滚动策略，这里是基于时间滚动-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--设置一个文件名称-->
+            <fileNamePattern>${log.filePath}/debug/debug.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <!--文件保存最大历史时间（数量）这里是30天-->
+            <maxHistory>${log.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder><!--作用类似于layout，既将日志信息转换成字符串，又将这些字符串输出到文件中去-->
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter"><!--用来过滤掉不是debug级别的level日志而只记录DEBUG级别的日志-->
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!--INFO--><!--文件会随着时间的推移size逐渐增大而滚动出新的日志文件-->
+    <appender name="infoAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--标明文件路径-->
+        <file>${log.filePath}/info.log</file>
+        <!--滚动策略，这里是基于时间滚动-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--设置一个文件名称-->
+            <fileNamePattern>${log.filePath}/info/info.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <!--文件保存最大历史时间（数量）这里是30天-->
+            <maxHistory>${log.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder><!--作用类似于layout，既将日志信息转换成字符串，又将这些字符串输出到文件中去-->
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter"><!--用来过滤掉不是info级别的level日志而只记录info级别的日志-->
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!--ERROR--><!--文件会随着时间的推移size逐渐增大而滚动出新的日志文件-->
+    <appender name="errorAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--标明文件路径-->
+        <file>${log.filePath}/error.log</file>
+        <!--滚动策略，这里是基于时间滚动-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--设置一个文件名称-->
+            <fileNamePattern>${log.filePath}/error/error.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <!--文件保存最大历史时间（数量）这里是30天-->
+            <maxHistory>${log.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder><!--作用类似于layout，既将日志信息转换成字符串，又将这些字符串输出到文件中去-->
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter"><!--用来过滤掉不是error级别的level日志而只记录error级别的日志-->
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <logger name="com.imooc.o2o" level="${log.level}" additivity="true"><!--存放日志对象，告诉logback日志需要关注哪个包下面信息,同时设置记录的级别有哪些;  -->
+        <appender-ref ref="debugAppender"></appender-ref><!--绑定logger和appender-->
+        <appender-ref ref="infoAppender"></appender-ref><!--绑定logger和appender-->
+        <appender-ref ref="errorAppender"></appender-ref><!--绑定logger和appender-->
+    </logger>
+
+    <root level="info">
+        <appender-ref ref="consoleAppender"></appender-ref>
+    </root>
+</configuration><!-- scan="true":默认当配置文件发生改变将会重新加载;  scanPeriod=""：设置我们的监测配置文件是否有修改时间的时间间隔，没有给出时间单位则默认单位为ms;  debug="true":将打印出logback内部的日志信息，实时查看logback的运行状态-->
